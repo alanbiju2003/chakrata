@@ -317,7 +317,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
   // Determine if the current user is the captain for this session
   // If the URL path starts with /alan, user is considered captain for UI purposes.
   // Otherwise, user is captain only if their userId matches the trip's ownerId.
-  const isCaptain = window.location.pathname.startsWith('/alan') || (userId && trip.ownerId === userId);
+  const isCaptain = window.location.pathname.startsWith('/alankuttu') || (userId && trip.ownerId === userId);
 
   useEffect(() => {
     if (!db || !trip?.id) return;
