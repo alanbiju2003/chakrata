@@ -1,0 +1,961 @@
+/* Global styles for a high-fidelity look - Consolidated CSS File */
+
+/* Import Google Font - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Basic CSS Reset & Global Typography */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #e0f2f7; /* Light cyan background for a fresh feel */
+  color: #2c3e50; /* Dark blue-gray for main text */
+  line-height: 1.6;
+}
+
+/* Base styles for common elements */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0.8em;
+  color: #1a202c; /* Even darker for headings */
+  font-weight: 700;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* General Button Styling */
+.btn {
+  padding: 12px 24px;
+  border-radius: 8px; /* Slightly more rounded */
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Space between text and icon */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4a90e2 0%, #6a5acd 100%); /* Blue to purple gradient */
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #3a7bd5 0%, #5a4ac3 100%);
+}
+
+.btn-secondary {
+  background-color: #f0f0f0; /* Light gray */
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); /* Green gradient */
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #27ae60 0%, #239b56 100%);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); /* Red gradient */
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Small button variant */
+.btn-small {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+/* Input Field Styling */
+.input-field {
+  width: 100%;
+  padding: 12px 15px; /* More padding */
+  border: 1px solid #dcdcdc;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  color: #333;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  -webkit-appearance: none; /* Remove default styling for selects/inputs */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.input-field:focus {
+  border-color: #4a90e2; /* Blue focus border */
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.25); /* Stronger soft blue glow */
+}
+
+.input-field:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #777;
+}
+
+/* Specific styling for select dropdowns */
+select.input-field {
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23666666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  padding-right: 40px; /* Make space for the custom arrow */
+}
+
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 25px;
+}
+
+/* Card Styling */
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* More prominent shadow */
+  padding: 30px;
+  margin-bottom: 25px;
+  border: 1px solid #f0f0f0; /* Subtle border */
+}
+
+/* Table Styling */
+.table-wrapper {
+  overflow-x: auto; /* Ensures tables are scrollable on small screens */
+  border-radius: 10px;
+  border: 1px solid #e0e0e0; /* Subtle border around the table container */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* Ensure table doesn't get too squished before scroll */
+  font-size: 0.95rem;
+  /* Removed border-radius/overflow here as wrapper handles it */
+}
+
+.data-table th,
+.data-table td {
+  padding: 14px 18px; /* More padding */
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0; /* Lighter border */
+}
+
+.data-table thead {
+  background-color: #e6eef5; /* Light blue header */
+  color: #333;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f8fcff; /* Very light hover effect */
+  cursor: default; /* Not always clickable rows, so default cursor */
+}
+
+/* --- App.js Specific Styles --- */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f2f7 0%, #b2ebf2 100%); /* Softer, inviting gradient */
+  padding: 25px;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 2.8rem; /* Larger heading */
+  font-weight: 800;
+  text-align: center;
+  color: #1a202c; /* Darker heading color */
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+  letter-spacing: -0.5px;
+}
+
+.main-content-card {
+  max-width: 900px; /* Wider content area */
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 18px; /* More rounded corners */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12); /* Deeper shadow */
+  padding: 40px;
+  margin-bottom: 30px;
+  animation: fadeIn 0.8s ease-out; /* Fade-in animation */
+}
+
+.user-id-text {
+  text-align: center;
+  color: #7f8c8d; /* Gray color for user ID */
+  font-size: 0.85rem;
+  margin-top: 20px;
+}
+
+.user-id-value {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* Loading state styles */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f0f4f8;
+}
+
+.loading-card {
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 1.25rem;
+  color: #555;
+}
+
+/* --- Modal.jsx Specific Styles --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it's on top */
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Soft shadow */
+  padding: 30px;
+  max-width: 400px; /* Slightly wider */
+  width: 90%; /* Responsive width */
+  text-align: center;
+  transform: scale(0.95); /* Initial scale for pop-in effect */
+  animation: slideInModal 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Smooth pop-in */
+}
+
+.modal-message {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 25px; /* More space */
+  line-height: 1.5;
+}
+
+.modal-button {
+  padding: 10px 25px;
+  background: linear-gradient(135deg, #4a90e2 0%, #6a5acd 100%); /* Primary button style */
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-button:hover {
+  background: linear-gradient(135deg, #3a7bd5 0%, #5a4ac3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.modal-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* --- TripList.jsx Specific Styles --- */
+.trip-list-container {
+  padding: 10px;
+}
+
+.trip-list-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #34495e;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.create-trip-section {
+  background-color: #f7f9fc; /* Lighter background for form */
+  border-radius: 12px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05); /* Inner shadow */
+  padding: 30px;
+  margin-bottom: 40px;
+}
+
+.create-trip-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.create-trip-heading svg {
+  color: #4a90e2; /* Blue icon */
+  width: 28px;
+  height: 28px;
+}
+
+.create-trip-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between form elements */
+}
+
+.trip-form-button {
+  width: auto; /* Auto width for buttons */
+  align-self: flex-start; /* Align to start in column layout */
+  margin-top: 10px;
+}
+
+.no-trips-message {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  border: 1px dashed #d0d0d0;
+}
+
+.trip-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+  gap: 25px; /* Gap between cards */
+}
+
+.trip-card {
+  background-color: #ffffff;
+  border-radius: 15px; /* More rounded */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.trip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: #4a90e2; /* Highlight border on hover */
+}
+
+.trip-card-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.trip-card-description {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 15px;
+  flex-grow: 1; /* Allows description to take available space */
+}
+
+.trip-card-owner {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 10px;
+}
+
+.trip-card-budget {
+  font-size: 0.85rem;
+  color: #555;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+/* --- TripDetail.jsx Specific Styles --- */
+.trip-detail-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #4a90e2; /* Primary blue for links */
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.back-button:hover {
+  color: #3a7bd5;
+  background-color: #f0f8ff; /* Light background on hover */
+}
+
+.trip-detail-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  flex-grow: 1;
+  text-overflow: ellipsis; /* Handle long titles */
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 20px; /* Space from back button */
+}
+
+.trip-detail-description {
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.tab-navigation {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 35px;
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05); /* Soft inner shadow */
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 15px;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap; /* Prevent wrapping for tab names */
+}
+
+.tab-button:hover {
+  background-color: #eaf1f7; /* Lighter hover background */
+  color: #333;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #4a90e2 0%, #6a5acd 100%); /* Primary gradient for active tab */
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for active tab */
+  transform: translateY(-1px); /* Slight lift for active tab */
+}
+
+.tab-button.active:hover {
+  background: linear-gradient(135deg, #3a7bd5 0%, #5a4ac3 100%);
+  color: white;
+}
+
+.tab-content {
+  padding: 10px 0; /* Padding for content within tabs */
+}
+
+/* --- MemberManagement.jsx Specific Styles --- */
+.member-management-container {
+  /* Inherits .card styles from global CSS */
+  padding: 30px;
+}
+
+.member-management-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-management-heading svg {
+  color: #4a90e2; /* Blue icon */
+  width: 26px;
+  height: 26px;
+}
+
+.add-member-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.add-member-form .input-field {
+  flex-grow: 1; /* Allow input to take available space */
+}
+
+.add-member-button {
+  align-self: flex-start; /* Align to the left in column layout */
+}
+
+.no-members-message {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1rem;
+  padding: 20px;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  border: 1px dashed #d0d0d0;
+}
+
+/* Specific table adjustments for this section if needed, otherwise uses global .data-table */
+.member-table {
+  /* uses global .data-table styles */
+}
+
+/* --- IncomeManagement.jsx Specific Styles --- */
+.income-management-container {
+  /* Inherits .card styles */
+}
+
+.income-management-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.income-management-heading svg {
+  color: #2ecc71; /* Green icon */
+  width: 26px;
+  height: 26px;
+}
+
+.add-income-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.add-income-button {
+  align-self: flex-start;
+}
+
+.no-income-message {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1rem;
+  padding: 20px;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  border: 1px dashed #d0d0d0;
+}
+
+.income-table {
+  /* uses global .data-table styles */
+}
+
+/* --- ExpenseManagement.jsx Specific Styles --- */
+.expense-management-container {
+  /* Inherits .card styles */
+}
+
+.expense-management-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expense-management-heading svg {
+  color: #e74c3c; /* Red icon */
+  width: 26px;
+  height: 26px;
+}
+
+.add-expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.expense-included-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.expense-included-member-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #444;
+  cursor: pointer;
+}
+
+.expense-included-member-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4a90e2; /* Blue checkbox */
+  border-radius: 4px;
+}
+
+.add-expense-button {
+  align-self: flex-start;
+}
+
+.no-expenses-message {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1rem;
+  padding: 20px;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  border: 1px dashed #d0d0d0;
+}
+
+.expense-table {
+  /* uses global .data-table styles */
+}
+
+/* --- SummaryAndStatements.jsx Specific Styles --- */
+.summary-container {
+  /* Inherits .card styles */
+}
+
+.summary-heading {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.summary-heading svg {
+  color: #3498db; /* Blue icon */
+  width: 26px;
+  height: 26px;
+}
+
+.summary-section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-top: 30px; /* Space between sections */
+}
+
+.no-summary-message {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1rem;
+  padding: 20px;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  border: 1px dashed #d0d0d0;
+}
+
+.balance-table {
+  /* uses global .data-table styles */
+}
+
+.balance-positive {
+  color: #27ae60; /* Darker green */
+  font-weight: 700;
+}
+
+.balance-negative {
+  color: #c0392b; /* Darker red */
+  font-weight: 700;
+}
+
+.settlement-table {
+  /* uses global .data-table styles */
+}
+
+.budget-summary {
+  background-color: #eef7f9; /* Light background for budget section */
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 25px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.budget-summary p {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: #4a5568;
+}
+
+.budget-summary strong {
+  color: #2c3e50;
+}
+
+.budget-status-positive {
+  color: #27ae60; /* Green for over/met budget */
+  font-weight: 700;
+}
+
+.budget-status-negative {
+  color: #e74c3c; /* Red for under budget */
+  font-weight: 700;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px 12px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  /* App.css adjustments */
+  .app-container {
+    padding: 15px;
+  }
+  .app-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+  .main-content-card {
+    padding: 25px;
+    border-radius: 15px;
+  }
+
+  /* TripDetail.css adjustments */
+  .trip-detail-header {
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    margin-bottom: 20px;
+  }
+  .back-button {
+    margin-bottom: 15px; /* Space when wrapped */
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .trip-detail-title {
+    font-size: 1.8rem;
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+  .tab-navigation {
+    flex-wrap: wrap; /* Allow tabs to wrap if needed */
+    padding: 5px;
+    border-radius: 8px;
+  }
+  .tab-button {
+    flex: 1 1 48%; /* Two columns on smaller screens */
+    margin: 2px;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  /* MemberManagement.css adjustments */
+  .member-management-heading {
+    font-size: 1.6rem;
+  }
+  .add-member-form {
+    flex-direction: column; /* Stack input and button on small screens */
+  }
+  .add-member-button {
+    width: 100%; /* Full width button on small screens */
+  }
+  .member-management-container {
+    padding: 20px;
+  }
+
+  /* IncomeManagement.css adjustments */
+  .income-management-heading {
+    font-size: 1.6rem;
+  }
+  .add-income-button {
+    width: 100%;
+  }
+  .income-form-grid { /* For Income/Expense Management */
+    grid-template-columns: 1fr; /* Stack columns on small screens */
+  }
+
+  /* ExpenseManagement.css adjustments */
+  .expense-management-heading {
+    font-size: 1.6rem;
+  }
+  .expense-included-members {
+    grid-template-columns: 1fr; /* Stack on mobile */
+  }
+  .add-expense-button {
+    width: 100%;
+  }
+  .expense-form-grid { /* For Income/Expense Management */
+    grid-template-columns: 1fr; /* Stack columns on small screens */
+  }
+
+
+  /* SummaryAndStatements.css adjustments */
+  .summary-heading {
+    font-size: 1.6rem;
+  }
+  .summary-section-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 1.8rem;
+  }
+  .main-content-card {
+    padding: 20px;
+  }
+  .tab-button {
+    flex: 1 1 100%; /* Stack tabs on very small screens */
+    margin: 4px 0;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
