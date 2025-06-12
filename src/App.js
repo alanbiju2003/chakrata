@@ -250,7 +250,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               value={newTripName}
               onChange={(e) => setNewTripName(e.target.value)}
               className="input-field"
-              placeholder="e.g. trip ka nam lik bhai "
+              placeholder="e.g. trip ka nam lik bhaiii "
               required
               disabled={!isGlobalAdmin} // Disable input for non-admins
             />
