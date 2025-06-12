@@ -3,7 +3,7 @@ import React, { useState, useEffect, createContext, useContext, useCallback } fr
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics } from "firebase/analytics"; // Corrected syntax: changed '=' to 'from'
 
 // lucide-react is used for icons.
 // Make sure to install lucide-react: npm install lucide-react
@@ -35,6 +35,9 @@ function App() {
 
   // Derive appId for Firestore paths from projectId
   const appIdForFirestore = firebaseConfig.projectId || 'default-trip-fund-app';
+
+  // Determine if the current session is an "admin" session based on URL
+  const isGlobalAdmin = window.location.pathname.startsWith('/alan');
 
   useEffect(() => {
     let appInstance;
@@ -119,6 +122,7 @@ function App() {
               appId={appIdForFirestore}
               setCurrentPage={setCurrentPage}
               setSelectedTrip={setSelectedTrip}
+              isGlobalAdmin={isGlobalAdmin} // Pass isGlobalAdmin to TripList
             />
           )}
           {currentPage === 'tripDetail' && selectedTrip && (
@@ -153,7 +157,7 @@ const Modal = ({ message, onClose }) => {
 };
 
 // TripList Component
-function TripList({ appId, setCurrentPage, setSelectedTrip }) {
+function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { // Accept isGlobalAdmin
   const { db, userId, showCustomModal } = useContext(FirebaseContext);
   const [trips, setTrips] = useState([]);
   const [newTripName, setNewTripName] = useState('');
@@ -188,6 +192,10 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
       showCustomModal("Database or User ID not available.");
       return;
     }
+    if (!isGlobalAdmin) { // Only allow creation if isGlobalAdmin is true
+      showCustomModal("You do not have permission to create trips.");
+      return;
+    }
 
     setIsAddingTrip(true);
     try {
@@ -217,6 +225,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
     <div className="trip-list-container">
       <h2 className="trip-list-title">Your Trips</h2>
 
+      {/* This section is now always rendered */}
       <div className="create-trip-section card">
         <h3 className="create-trip-heading">
           <PlusCircle className="icon" size={24} /> Create a New Trip
@@ -232,6 +241,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
               className="input-field"
               placeholder="e.g., European Adventure 2025"
               required
+              disabled={!isGlobalAdmin} // Disable input for non-admins
             />
           </div>
           <div className="form-group">
@@ -243,11 +253,12 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
               rows="3"
               className="input-field"
               placeholder="e.g., Paris, Rome, Berlin with friends"
+              disabled={!isGlobalAdmin} // Disable textarea for non-admins
             ></textarea>
           </div>
           <button
             type="submit"
-            disabled={isAddingTrip}
+            disabled={isAddingTrip || !isGlobalAdmin} // Disable button for non-admins
             className="btn btn-primary trip-form-button"
           >
             {isAddingTrip ? 'Creating...' : (
@@ -260,7 +271,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
       </div>
 
       {trips.length === 0 ? (
-        <p className="no-trips-message">No trips found. Create one to get started!</p>
+        <p className="no-trips-message">No trips found. {isGlobalAdmin ? 'Create one to get started!' : 'Contact the trip captain to create a trip.'}</p>
       ) : (
         <ul className="trip-list-grid">
           {trips.map((trip, index) => ( // Added index for serial number
@@ -271,7 +282,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
             >
               <h4 className="trip-card-name">{index + 1}. {trip.name}</h4> {/* Display serial number */}
               <p className="trip-card-description">{trip.description || 'No description provided.'}</p>
-              <p className="trip-card-owner">Created by: {trip.ownerId === userId ? 'You' : trip.ownerId}</p>
+              {/* <p className="trip-card-owner">Created by: {trip.ownerId === userId ? 'You' : trip.ownerId}</p> */}
             </li>
           ))}
         </ul>
@@ -282,24 +293,22 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
 
 // TripDetail Component
 function TripDetail({ appId, trip, setCurrentPage }) {
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary' or 'admin' initially
-  const { db, userId, showCustomModal } = useContext(FirebaseContext); // Get userId from context
+  const [activeTab, setActiveTab] = useState('summary');
+  const { db, userId, showCustomModal } = useContext(FirebaseContext);
   const [members, setMembers] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [settlements, setSettlements] = useState([]); // New state for settlements
+  const [settlements, setSettlements] = useState([]);
 
-  // Determine if the current user is the captain
-  const isCaptain = userId && trip.ownerId === userId;
+  // Determine if the current user is the captain for this session
+  // If the URL path starts with /alan, user is considered captain for UI purposes.
+  // Otherwise, user is captain only if their userId matches the trip's ownerId.
+  const isCaptain = window.location.pathname.startsWith('/alan') || (userId && trip.ownerId === userId);
 
   useEffect(() => {
     if (!db || !trip?.id) return;
 
-    // If activeTab is not 'summary' and user is not captain, force to 'summary'
-    if (!isCaptain && activeTab !== 'summary') {
-      setActiveTab('summary');
-      showCustomModal("Only the trip captain can access administrative sections.");
-    }
+    // Removed the redirection logic: All users can now view all tabs
 
     // Listen for members
     const unsubscribeMembers = onSnapshot(
@@ -335,7 +344,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
         console.error("Error fetching expenses:", error);
         showCustomModal(`Failed to load expenses: ${error.message}`);
       }
-    );
+      );
 
     // Listen for settlements (new)
     const unsubscribeSettlements = onSnapshot(
@@ -356,7 +365,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       unsubscribeExpenses();
       unsubscribeSettlements(); // Cleanup settlement listener
     };
-  }, [db, trip.id, appId, isCaptain, activeTab, showCustomModal]); // Added activeTab and showCustomModal to dependencies
+  }, [db, trip.id, appId, isCaptain, showCustomModal]); // Removed activeTab from dependencies
 
   return (
     <div>
@@ -371,7 +380,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       </div>
       <p className="trip-detail-description">{trip.description || 'No description for this trip.'}</p>
 
-      {/* Tabs */}
+      {/* Tabs - now always visible */}
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'summary' ? 'active' : ''}`}
@@ -379,33 +388,28 @@ function TripDetail({ appId, trip, setCurrentPage }) {
         >
           <PieChart className="icon" size={18} /> Summary
         </button>
-        {isCaptain && ( // Only show admin tabs if isCaptain is true
-          <>
-            <button
-              className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
-              onClick={() => setActiveTab('members')}
-            >
-              <Users className="icon" size={18} /> Members
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'income' ? 'active' : ''}`}
-              onClick={() => setActiveTab('income')}
-            >
-              <Wallet className="icon" size={18} /> Income
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'expenses' ? 'active' : ''}`}
-              onClick={() => setActiveTab('expenses')}
-            >
-              <CreditCard className="icon" size={18} /> Expenses
-            </button>
-          </>
-        )}
+        <button
+          className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
+          onClick={() => setActiveTab('members')}
+        >
+          <Users className="icon" size={18} /> Members
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'income' ? 'active' : ''}`}
+          onClick={() => setActiveTab('income')}
+        >
+          <Wallet className="icon" size={18} /> Income
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'expenses' ? 'active' : ''}`}
+          onClick={() => setActiveTab('expenses')}
+        >
+          <CreditCard className="icon" size={18} /> Expenses
+        </button>
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content - now always rendered based on activeTab */}
       <div className="tab-content">
-        {/* Render content based on activeTab, but only if isCaptain or it's the summary tab */}
         {activeTab === 'summary' && (
           <SummaryAndStatements
             appId={appId}
@@ -417,13 +421,13 @@ function TripDetail({ appId, trip, setCurrentPage }) {
             isCaptain={isCaptain}
           />
         )}
-        {isCaptain && activeTab === 'members' && (
+        {activeTab === 'members' && (
           <MemberManagement appId={appId} tripId={trip.id} members={members} isCaptain={isCaptain} />
         )}
-        {isCaptain && activeTab === 'income' && (
+        {activeTab === 'income' && (
           <IncomeManagement appId={appId} tripId={trip.id} members={members} incomes={incomes} isCaptain={isCaptain} />
         )}
-        {isCaptain && activeTab === 'expenses' && (
+        {activeTab === 'expenses' && (
           <ExpenseManagement appId={appId} tripId={trip.id} members={members} expenses={expenses} isCaptain={isCaptain} />
         )}
       </div>
@@ -445,6 +449,10 @@ function MemberManagement({ appId, tripId, members, isCaptain }) {
     }
     if (!db) {
       showCustomModal("Database not available.");
+      return;
+    }
+    if (!isCaptain) { // Added explicit check for modification
+      showCustomModal("You do not have permission to add members.");
       return;
     }
     setIsAddingMember(true);
@@ -549,6 +557,10 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
     }
     if (!db) {
       showCustomModal("Database not available.");
+      return;
+    }
+    if (!isCaptain) { // Added explicit check for modification
+      showCustomModal("You do not have permission to add income.");
       return;
     }
 
@@ -732,7 +744,8 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
   }, [members, includedMemberIds.length]);
 
   const handleToggleInclude = (memberId) => {
-    if (!isCaptain) {
+    if (!isCaptain) { // Added explicit check for modification
+      showCustomModal("You do not have permission to modify included members.");
       return;
     }
     setIncludedMemberIds(prev =>
@@ -755,6 +768,10 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
     }
     if (!db) {
       showCustomModal("Database not available.");
+      return;
+    }
+    if (!isCaptain) { // Added explicit check for modification
+      showCustomModal("You do not have permission to add expenses.");
       return;
     }
 
@@ -888,7 +905,7 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
                     value={member.id}
                     checked={includedMemberIds.includes(member.id)}
                     onChange={() => handleToggleInclude(member.id)}
-                    disabled={!isCaptain}
+                    disabled={!isCaptain} // Disable checkboxes if not captain
                   />
                   <span>{member.name}</span>
                 </label>
