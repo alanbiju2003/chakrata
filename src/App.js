@@ -37,7 +37,7 @@ function App() {
   const appIdForFirestore = firebaseConfig.projectId || 'default-trip-fund-app';
 
   // Determine if the current session is an "admin" session based on URL
-  const isGlobalAdmin = window.location.pathname.startsWith('/alan');
+  const isGlobalAdmin = window.location.pathname.startsWith('/kuttu');
 
   useEffect(() => {
     let appInstance;
