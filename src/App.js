@@ -37,7 +37,7 @@ function App() {
   const appIdForFirestore = firebaseConfig.projectId || 'default-trip-fund-app';
 
   // Determine if the current session is an "admin" session based on URL
-  const isGlobalAdmin = window.location.pathname.startsWith('/kuttu');
+  const isGlobalAdmin = window.location.pathname.startsWith('/alan');
 
   useEffect(() => {
     let appInstance;
@@ -113,7 +113,6 @@ function App() {
           {/* Logo on the top-left */}
           <img
             // Placeholder for INR icon. You can replace this URL with your actual INR logo image.
-            src=""
             className="absolute top-4 left-4 h-16 w-16 rounded-full shadow-md"
             onError={(e) => { e.target.onerror = null; e.target.src = ''; }} // Fallback image
           />
@@ -236,7 +235,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
     <div className="trip-list-container">
       <h2 className="trip-list-title">Your Trips</h2>
 
-      {/* This section is now always rendered, but inputs/button disabled for non-admins */}
+      {/* This section is now always rendered for all users */}
       <div className="create-trip-section card">
         <h3 className="create-trip-heading">
           <PlusCircle className="icon" size={24} /> Create a New Trip
@@ -250,7 +249,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               value={newTripName}
               onChange={(e) => setNewTripName(e.target.value)}
               className="input-field"
-              placeholder="e.g. trip ka nam lik bhaiii "
+              placeholder="e.g., CHlo bhai trip PE"
               required
               disabled={!isGlobalAdmin} // Disable input for non-admins
             />
@@ -263,7 +262,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               onChange={(e) => setNewTripDesc(e.target.value)}
               rows="3"
               className="input-field"
-              placeholder="e.g.,mayur vihar phase 3 , kondli , Sn "
+              placeholder="e.g.,KOndli , MAyur Vihar phase 3 , kHoda"
               disabled={!isGlobalAdmin} // Disable textarea for non-admins
             ></textarea>
           </div>
@@ -295,7 +294,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               <p className="trip-card-description">{trip.description || 'No description provided.'}</p>
               {/* Display trip owner */}
               <p className="trip-card-owner">
-                Created by : ALAN BIJU
+                Created by: ALAN BIJU
               </p>
             </li>
           ))}
@@ -317,7 +316,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
   // Determine if the current user is the captain for this session
   // If the URL path starts with /alan, user is considered captain for UI purposes.
   // Otherwise, user is captain only if their userId matches the trip's ownerId.
-  const isCaptain = window.location.pathname.startsWith('/alankuttu') || (userId && trip.ownerId === userId);
+  const isCaptain = window.location.pathname.startsWith('/kuttubiju ') || (userId && trip.ownerId === userId);
 
   useEffect(() => {
     if (!db || !trip?.id) return;
@@ -506,7 +505,7 @@ function MemberManagement({ appId, tripId, members, isCaptain }) {
             value={newMemberName}
             onChange={(e) => setNewMemberName(e.target.value)}
             className="input-field"
-            placeholder="e.g., John Doe"
+            placeholder="e.g., ALAN BIJU"
             required
             disabled={!isCaptain} // Disable if not captain
           />
@@ -656,7 +655,7 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="input-field"
-              placeholder="e.g., Initial contribution"
+              placeholder="e.g.,Description"
               required
               disabled={!isCaptain}
             />
