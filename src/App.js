@@ -3,7 +3,7 @@ import React, { useState, useEffect, createContext, useContext, useCallback } fr
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics"; // Corrected syntax: changed '=' to 'from'
+import { getAnalytics } from "firebase/analytics";
 
 // lucide-react is used for icons.
 // Make sure to install lucide-react: npm install lucide-react
@@ -108,9 +108,20 @@ function App() {
   return (
     <FirebaseContext.Provider value={{ db, auth, userId, showCustomModal }}>
       <div className="app-container">
-        <h1 className="app-title">
-          Trip Expense Manager
-        </h1>
+        {/* Header section with logo and company name */}
+        <div className="relative w-full flex items-center justify-center p-4">
+          {/* Logo on the top-left */}
+          <img
+            // Placeholder for INR icon. You can replace this URL with your actual INR logo image.
+            src=""
+            className="absolute top-4 left-4 h-16 w-16 rounded-full shadow-md"
+            onError={(e) => { e.target.onerror = null; e.target.src = ''; }} // Fallback image
+          />
+          {/* Company Name in the center */}
+          <h1 className="app-title">
+            {/* AB MEMORIES */}
+          </h1>
+        </div>
 
         {showModal && (
           <Modal message={modalMessage} onClose={closeModal} />
@@ -133,7 +144,7 @@ function App() {
             />
           )}
         </div>
-        <p className="user-id-text">Your User ID: <span className="user-id-value">{userId}</span></p>
+        {/* <p className="user-id-text">Your User ID: <span className="user-id-value">{userId}</span></p> */}
       </div>
     </FirebaseContext.Provider>
   );
@@ -225,7 +236,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
     <div className="trip-list-container">
       <h2 className="trip-list-title">Your Trips</h2>
 
-      {/* This section is now always rendered */}
+      {/* This section is now always rendered, but inputs/button disabled for non-admins */}
       <div className="create-trip-section card">
         <h3 className="create-trip-heading">
           <PlusCircle className="icon" size={24} /> Create a New Trip
@@ -239,7 +250,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               value={newTripName}
               onChange={(e) => setNewTripName(e.target.value)}
               className="input-field"
-              placeholder="e.g., European Adventure 2025"
+              placeholder="e.g. trip ka nam lik bhai "
               required
               disabled={!isGlobalAdmin} // Disable input for non-admins
             />
@@ -252,7 +263,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               onChange={(e) => setNewTripDesc(e.target.value)}
               rows="3"
               className="input-field"
-              placeholder="e.g., Paris, Rome, Berlin with friends"
+              placeholder="e.g.,mayur vihar phase 3 , kondli , Sn "
               disabled={!isGlobalAdmin} // Disable textarea for non-admins
             ></textarea>
           </div>
@@ -282,7 +293,10 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
             >
               <h4 className="trip-card-name">{index + 1}. {trip.name}</h4> {/* Display serial number */}
               <p className="trip-card-description">{trip.description || 'No description provided.'}</p>
-              {/* <p className="trip-card-owner">Created by: {trip.ownerId === userId ? 'You' : trip.ownerId}</p> */}
+              {/* Display trip owner */}
+              <p className="trip-card-owner">
+                Created by : ALAN BIJU
+              </p>
             </li>
           ))}
         </ul>
@@ -457,7 +471,7 @@ function MemberManagement({ appId, tripId, members, isCaptain }) {
     }
     setIsAddingMember(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/members`), {
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/members`), { // Corrected: use tripId
         name: newMemberName.trim(),
         addedAt: serverTimestamp(),
       });
@@ -566,7 +580,7 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
 
     setIsAddingIncome(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), {
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), { // Corrected: use tripId
         memberId: selectedMemberId,
         amount: incomeAmount,
         description: description.trim(),
@@ -710,7 +724,7 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
                 <tr key={income.id}>
                   <td>{index + 1}</td>
                   <td>{getMemberName(income.memberId)}</td>
-                  <td className="balance-positive">${income.amount.toFixed(2)}</td>
+                  <td className="balance-positive">₹{income.amount.toFixed(2)}</td>
                   <td>{income.description}</td>
                   <td>{income.paymentMethod || 'N/A'}</td>
                   <td>{new Date(income.date).toLocaleDateString()}</td>
@@ -777,7 +791,7 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
 
     setIsAddingExpense(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/expenses`), {
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/expenses`), { // Corrected: use tripId
         paidByMemberId: paidByMemberId,
         amount: expenseAmount,
         description: description.trim(),
@@ -945,7 +959,7 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
                 <tr key={expense.id}>
                   <td>{index + 1}</td>
                   <td>{expense.description}</td>
-                  <td className="balance-negative">-${expense.amount.toFixed(2)}</td>
+                  <td className="balance-negative">-₹{expense.amount.toFixed(2)}</td>
                   <td>{getMemberName(expense.paidByMemberId)}</td>
                   <td>{expense.includedMemberIds.map(id => getMemberName(id)).join(', ')}</td>
                   <td>{expense.paymentMethod || 'N/A'}</td>
@@ -985,7 +999,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
       ...incomes.map(item => ({
         ...item,
         type: 'income',
-        displayAmount: `+$${item.amount.toFixed(2)}`,
+        displayAmount: `+₹${item.amount.toFixed(2)}`,
         payerOrReceiverId: item.memberId,
         involvedMembers: [item.memberId],
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
@@ -993,7 +1007,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
       ...expenses.map(item => ({
         ...item,
         type: 'expense',
-        displayAmount: `-$${item.amount.toFixed(2)}`,
+        displayAmount: `-₹${item.amount.toFixed(2)}`,
         payerOrReceiverId: item.paidByMemberId,
         involvedMembers: item.includedMemberIds,
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
@@ -1003,7 +1017,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
         ...item,
         type: 'settlement',
         description: `Settlement: ${getMemberName(item.fromId)} paid ${getMemberName(item.toId)}`,
-        displayAmount: `-$${item.amount.toFixed(2)} (Paid)`, // How it affects the 'from' member
+        displayAmount: `-₹${item.amount.toFixed(2)} (Paid)`, // How it affects the 'from' member
         payerOrReceiverId: item.fromId,
         involvedMembers: [item.fromId, item.toId],
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
@@ -1206,7 +1220,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                         }
                       </td>
                       <td className={transaction.type === 'income' ? 'balance-positive' : 'balance-negative'}>
-                        {transaction.type === 'settlement' ? `-$${transaction.amount}` : transaction.displayAmount} {/* Display actual amount for settlements */}
+                        {transaction.type === 'settlement' ? `-₹${transaction.amount}` : transaction.displayAmount} {/* Display actual amount for settlements */}
                       </td>
                       <td>{transaction.paymentMethod || 'N/A'}</td>
                       <td>{new Date(transaction.date).toLocaleDateString()}</td>
@@ -1234,10 +1248,10 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{balance.name}</td>
-                    <td className="balance-positive">${balance.totalContributions.toFixed(2)}</td>
-                    <td className="balance-negative">${balance.totalOwedShare.toFixed(2)}</td>
+                    <td className="balance-positive">₹{balance.totalContributions.toFixed(2)}</td>
+                    <td className="balance-negative">₹{balance.totalOwedShare.toFixed(2)}</td>
                     <td className={balance.netBalance >= 0 ? 'balance-positive' : 'balance-negative'}>
-                      ${balance.netBalance.toFixed(2)} {balance.netBalance >= 0 ? '(Owed to them)' : '(Owes)'}
+                      ₹{balance.netBalance.toFixed(2)} {balance.netBalance >= 0 ? '(Owed to them)' : '(Owes)'}
                     </td>
                   </tr>
                 ))}
@@ -1266,7 +1280,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                       <td>{index + 1}</td>
                       <td>{sug.from}</td>
                       <td>{sug.to}</td>
-                      <td className="balance-negative">${sug.amount}</td>
+                      <td className="balance-negative">₹{sug.amount}</td>
                       {isCaptain && (
                         <td>
                           <button
