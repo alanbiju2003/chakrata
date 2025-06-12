@@ -282,7 +282,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip }) {
 
 // TripDetail Component
 function TripDetail({ appId, trip, setCurrentPage }) {
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary', 'members', 'income', 'expenses'
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' or 'admin' initially
   const { db, userId, showCustomModal } = useContext(FirebaseContext); // Get userId from context
   const [members, setMembers] = useState([]);
   const [incomes, setIncomes] = useState([]);
@@ -294,6 +294,12 @@ function TripDetail({ appId, trip, setCurrentPage }) {
 
   useEffect(() => {
     if (!db || !trip?.id) return;
+
+    // If activeTab is not 'summary' and user is not captain, force to 'summary'
+    if (!isCaptain && activeTab !== 'summary') {
+      setActiveTab('summary');
+      showCustomModal("Only the trip captain can access administrative sections.");
+    }
 
     // Listen for members
     const unsubscribeMembers = onSnapshot(
@@ -350,7 +356,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       unsubscribeExpenses();
       unsubscribeSettlements(); // Cleanup settlement listener
     };
-  }, [db, trip.id, appId, showCustomModal]);
+  }, [db, trip.id, appId, isCaptain, activeTab, showCustomModal]); // Added activeTab and showCustomModal to dependencies
 
   return (
     <div>
@@ -373,37 +379,33 @@ function TripDetail({ appId, trip, setCurrentPage }) {
         >
           <PieChart className="icon" size={18} /> Summary
         </button>
-        <button
-          className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
-          onClick={() => setActiveTab('members')}
-        >
-          <Users className="icon" size={18} /> Members
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'income' ? 'active' : ''}`}
-          onClick={() => setActiveTab('income')}
-        >
-          <Wallet className="icon" size={18} /> Income
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'expenses' ? 'active' : ''}`}
-          onClick={() => setActiveTab('expenses')}
-        >
-          <CreditCard className="icon" size={18} /> Expenses
-        </button>
+        {isCaptain && ( // Only show admin tabs if isCaptain is true
+          <>
+            <button
+              className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
+              onClick={() => setActiveTab('members')}
+            >
+              <Users className="icon" size={18} /> Members
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'income' ? 'active' : ''}`}
+              onClick={() => setActiveTab('income')}
+            >
+              <Wallet className="icon" size={18} /> Income
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'expenses' ? 'active' : ''}`}
+              onClick={() => setActiveTab('expenses')}
+            >
+              <CreditCard className="icon" size={18} /> Expenses
+            </button>
+          </>
+        )}
       </div>
 
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === 'members' && (
-          <MemberManagement appId={appId} tripId={trip.id} members={members} isCaptain={isCaptain} />
-        )}
-        {activeTab === 'income' && (
-          <IncomeManagement appId={appId} tripId={trip.id} members={members} incomes={incomes} isCaptain={isCaptain} />
-        )}
-        {activeTab === 'expenses' && (
-          <ExpenseManagement appId={appId} tripId={trip.id} members={members} expenses={expenses} isCaptain={isCaptain} />
-        )}
+        {/* Render content based on activeTab, but only if isCaptain or it's the summary tab */}
         {activeTab === 'summary' && (
           <SummaryAndStatements
             appId={appId}
@@ -411,9 +413,18 @@ function TripDetail({ appId, trip, setCurrentPage }) {
             members={members}
             incomes={incomes}
             expenses={expenses}
-            settlements={settlements} // Pass settlements to SummaryAndStatements
+            settlements={settlements}
             isCaptain={isCaptain}
           />
+        )}
+        {isCaptain && activeTab === 'members' && (
+          <MemberManagement appId={appId} tripId={trip.id} members={members} isCaptain={isCaptain} />
+        )}
+        {isCaptain && activeTab === 'income' && (
+          <IncomeManagement appId={appId} tripId={trip.id} members={members} incomes={incomes} isCaptain={isCaptain} />
+        )}
+        {isCaptain && activeTab === 'expenses' && (
+          <ExpenseManagement appId={appId} tripId={trip.id} members={members} expenses={expenses} isCaptain={isCaptain} />
         )}
       </div>
     </div>
@@ -543,7 +554,7 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
 
     setIsAddingIncome(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), { // Use tripId instead of trip.id
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), {
         memberId: selectedMemberId,
         amount: incomeAmount,
         description: description.trim(),
@@ -975,7 +986,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
         ...item,
         type: 'settlement',
         description: `Settlement: ${getMemberName(item.fromId)} paid ${getMemberName(item.toId)}`,
-        displayAmount: `-${item.amount.toFixed(2)} (Paid)`, // How it affects the 'from' member
+        displayAmount: `-$${item.amount.toFixed(2)} (Paid)`, // How it affects the 'from' member
         payerOrReceiverId: item.fromId,
         involvedMembers: [item.fromId, item.toId],
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
