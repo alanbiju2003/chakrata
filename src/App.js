@@ -24,13 +24,15 @@ function App() {
 
   // Use the Firebase config provided by the user directly
   const firebaseConfig = {
-    apiKey: "AIzaSyDplvW6M5NyZ4gvpTKJcWylzr8ZDvu3pII",
-    authDomain: "chakrata-ed63e.firebaseapp.com",
-    projectId: "chakrata-ed63e",
-    storageBucket: "chakrata-ed63e.firebasestorage.app",
-    messagingSenderId: "867844986027",
-    appId: "1:867844986027:web:776a492b431712ae8f93ee",
-    measurementId: "G-WLPDM75TZ8"
+  
+  apiKey: "AIzaSyAZDKtVoeKJQ-MNx2z80xPXD9fdHGor_fo",
+  authDomain: "chakrataalan.firebaseapp.com",
+  projectId: "chakrataalan",
+  storageBucket: "chakrataalan.firebasestorage.app",
+  messagingSenderId: "134912988599",
+  appId: "1:134912988599:web:8630b937dbc6ba45b84432",
+  measurementId: "G-KV8E05NR9E"
+
   };
 
   // Derive appId for Firestore paths from projectId
@@ -316,7 +318,7 @@ function TripDetail({ appId, trip, setCurrentPage }) {
   // Determine if the current user is the captain for this session
   // If the URL path starts with /alan, user is considered captain for UI purposes.
   // Otherwise, user is captain only if their userId matches the trip's ownerId.
-  const isCaptain = window.location.pathname.startsWith('/kuttubiju ') || (userId && trip.ownerId === userId);
+  const isCaptain = window.location.pathname.startsWith('/kuttubiju') || (userId && trip.ownerId === userId);
 
   useEffect(() => {
     if (!db || !trip?.id) return;
