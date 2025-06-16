@@ -224,7 +224,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder="kuttu@gmail.com"
+              placeholder="@gmail.com"
               required
             />
           </div>
