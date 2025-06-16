@@ -27,17 +27,21 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false); // State for login modal
 
   const firebaseConfig = {
-    apiKey: "AIzaSyDplvW6M5NyZ4gvpTKJcWylzr8ZDvu3pII",
-    authDomain: "chakrata-ed63e.firebaseapp.com",
-    databaseURL: "https://chakrata-ed63e-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "chakrata-ed63e",
-    storageBucket: "chakrata-ed63e.firebaseolestorage.app",
-    messagingSenderId: "867844986027",
-    appId: "1:867844986027:web:776a492b431712ae8f93ee",
-    measurementId: "G-WLPDM75TZ8"
+  
+  apiKey: "AIzaSyAZDKtVoeKJQ-MNx2z80xPXD9fdHGor_fo",
+  authDomain: "chakrataalan.firebaseapp.com",
+  projectId: "chakrataalan",
+  storageBucket: "chakrataalan.firebasestorage.app",
+  messagingSenderId: "134912988599",
+  appId: "1:134912988599:web:8630b937dbc6ba45b84432",
+  measurementId: "G-KV8E05NR9E"
+
   };
 
   const appIdForFirestore = firebaseConfig.projectId || 'default-trip-fund-app';
+
+  // Determine if the current session is an "admin" session based on URL
+  const isGlobalAdmin = window.location.pathname.startsWith('/alan');
 
   useEffect(() => {
     let appInstance;
