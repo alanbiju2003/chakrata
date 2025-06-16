@@ -1,82 +1,76 @@
 /* global __initial_auth_token */
-import React, { useState, useEffect, createContext, useContext, useCallback } from 'react'; // Import useCallback
+import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getAnalytics } from "firebase/analytics";
 
 // lucide-react is used for icons.
-// Make sure to install lucide-react: npm install lucide-react
-import { PlusCircle, Users, Wallet, CreditCard, PieChart, ChevronLeft, ReceiptText } from 'lucide-react';
+import { PlusCircle, Users, Wallet, CreditCard, PieChart, ChevronLeft, ReceiptText, LogIn, LogOut } from 'lucide-react';
 
 // Context for Firebase and Auth
 const FirebaseContext = createContext(null);
+
+// Define the admin UID
+const ADMIN_UID = "rpGFCp7Rn3TMG3iKhyVjxmbzuA92"; // UID for kuttu@gmail.com
 
 function App() {
   const [db, setDb] = useState(null);
   const [auth, setAuth] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [currentPage, setCurrentPage] = useState('tripList'); // 'tripList' or 'tripDetail'
+  const [currentPage, setCurrentPage] = useState('tripList');
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [isTripCaptain, setIsTripCaptain] = useState(false); // State for admin status
+  const [showLoginModal, setShowLoginModal] = useState(false); // State for login modal
 
-  // Use the Firebase config provided by the user directly
   const firebaseConfig = {
-  
-  apiKey: "AIzaSyAZDKtVoeKJQ-MNx2z80xPXD9fdHGor_fo",
-  authDomain: "chakrataalan.firebaseapp.com",
-  projectId: "chakrataalan",
-  storageBucket: "chakrataalan.firebasestorage.app",
-  messagingSenderId: "134912988599",
-  appId: "1:134912988599:web:8630b937dbc6ba45b84432",
-  measurementId: "G-KV8E05NR9E"
-
+    apiKey: "AIzaSyDplvW6M5NyZ4gvpTKJcWylzr8ZDvu3pII",
+    authDomain: "chakrata-ed63e.firebaseapp.com",
+    databaseURL: "https://chakrata-ed63e-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "chakrata-ed63e",
+    storageBucket: "chakrata-ed63e.firebaseolestorage.app",
+    messagingSenderId: "867844986027",
+    appId: "1:867844986027:web:776a492b431712ae8f93ee",
+    measurementId: "G-WLPDM75TZ8"
   };
 
-  // Derive appId for Firestore paths from projectId
   const appIdForFirestore = firebaseConfig.projectId || 'default-trip-fund-app';
-
-  // Determine if the current session is an "admin" session based on URL
-  const isGlobalAdmin = window.location.pathname.startsWith('/alan');
 
   useEffect(() => {
     let appInstance;
     let authInstance;
     let dbInstance;
-    let analyticsInstance; // Declared but not used beyond initialization
+    let analyticsInstance;
 
     try {
-      // Initialize Firebase app with the provided config
       appInstance = initializeApp(firebaseConfig);
       authInstance = getAuth(appInstance);
       dbInstance = getFirestore(appInstance);
-      analyticsInstance = getAnalytics(appInstance); // Initialize Analytics
+      analyticsInstance = getAnalytics(appInstance);
 
       setAuth(authInstance);
       setDb(dbInstance);
 
-      // Listen for auth state changes
       const unsubscribe = onAuthStateChanged(authInstance, async (user) => {
         if (user) {
           setUserId(user.uid);
-          setIsAuthReady(true);
+          // Check if the logged-in user is the trip captain
+          setIsTripCaptain(user.uid === ADMIN_UID);
         } else {
-          // If no user, try to sign in with custom token or anonymously
+          // Sign in anonymously for public view
           try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(authInstance, __initial_auth_token);
-            } else {
-              await signInAnonymously(authInstance);
-            }
+            await signInAnonymously(authInstance);
+            setIsTripCaptain(false);
           } catch (error) {
-            console.error("Error signing in:", error);
-            setModalMessage(`Authentication error: ${error.message}. Please try again.`);
+            console.error("Error signing in anonymously:", error);
+            setModalMessage(`Authentication error: ${error.message}. Please refresh the page.`);
             setShowModal(true);
           }
-          setIsAuthReady(true); // Still set ready, even if anonymous or failed
         }
+        setIsAuthReady(true);
       });
 
       return () => unsubscribe();
@@ -85,7 +79,7 @@ function App() {
       setModalMessage(`Failed to initialize application: ${error.message}.`);
       setShowModal(true);
     }
-  }, [JSON.stringify(firebaseConfig)]); // Re-run effect if firebaseConfig changes
+  }, [JSON.stringify(firebaseConfig)]);
 
   const showCustomModal = (message) => {
     setModalMessage(message);
@@ -95,6 +89,44 @@ function App() {
   const closeModal = () => {
     setShowModal(false);
     setModalMessage('');
+  };
+
+  // Login function for trip captain
+  const handleCaptainLogin = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      if (userCredential.user.uid === ADMIN_UID) {
+        setIsTripCaptain(true);
+        setModalMessage("Logged in as Trip Captain successfully!");
+        setShowLoginModal(false);
+      } else {
+        await signOut(auth);
+        setModalMessage("Only the designated Trip Captain can log in. You have been logged out.");
+        setIsTripCaptain(false);
+        await signInAnonymously(auth);
+      }
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error logging in:", error);
+      setModalMessage(`Login failed: ${error.message}`);
+      setShowModal(true);
+      setIsTripCaptain(false);
+    }
+  };
+
+  // Logout function for trip captain
+  const handleCaptainLogout = async () => {
+    try {
+      await signOut(auth);
+      await signInAnonymously(auth);
+      setModalMessage("Logged out successfully. You are now viewing as a public user.");
+      setShowModal(true);
+      setIsTripCaptain(false);
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setModalMessage(`Logout failed: ${error.message}`);
+      setShowModal(true);
+    }
   };
 
   if (!isAuthReady) {
@@ -108,24 +140,44 @@ function App() {
   }
 
   return (
-    <FirebaseContext.Provider value={{ db, auth, userId, showCustomModal }}>
+    <FirebaseContext.Provider value={{ db, auth, userId, showCustomModal, isTripCaptain }}>
       <div className="app-container">
-        {/* Header section with logo and company name */}
         <div className="relative w-full flex items-center justify-center p-4">
-          {/* Logo on the top-left */}
           <img
-            // Placeholder for INR icon. You can replace this URL with your actual INR logo image.
             className="absolute top-4 left-4 h-16 w-16 rounded-full shadow-md"
-            onError={(e) => { e.target.onerror = null; e.target.src = ''; }} // Fallback image
+            onError={(e) => { e.target.onerror = null; e.target.src = ''; }}
           />
-          {/* Company Name in the center */}
           <h1 className="app-title">
             {/* AB MEMORIES */}
           </h1>
+          {/* Captain Login/Logout Button */}
+          <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+            {!isTripCaptain ? (
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="btn btn-primary"
+                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <LogIn size={18} /> Captain Login
+              </button>
+            ) : (
+              <button
+                onClick={handleCaptainLogout}
+                className="btn btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <LogOut size={18} /> Logout Captain
+              </button>
+            )}
+          </div>
         </div>
 
         {showModal && (
           <Modal message={modalMessage} onClose={closeModal} />
+        )}
+
+        {showLoginModal && (
+          <AdminLogin onLogin={handleCaptainLogin} onClose={() => setShowLoginModal(false)} />
         )}
 
         <div className="main-content-card">
@@ -134,7 +186,6 @@ function App() {
               appId={appIdForFirestore}
               setCurrentPage={setCurrentPage}
               setSelectedTrip={setSelectedTrip}
-              isGlobalAdmin={isGlobalAdmin} // Pass isGlobalAdmin to TripList
             />
           )}
           {currentPage === 'tripDetail' && selectedTrip && (
@@ -145,11 +196,63 @@ function App() {
             />
           )}
         </div>
-        {/* <p className="user-id-text">Your User ID: <span className="user-id-value">{userId}</span></p> */}
       </div>
     </FirebaseContext.Provider>
   );
 }
+
+// AdminLogin Component
+const AdminLogin = ({ onLogin, onClose }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await onLogin(email, password);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="login-card modal-content">
+        <h2 className="login-title"><LogIn size={24} /> Trip Captain Login</h2>
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-field"
+              placeholder="@gmail.com"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-field"
+              placeholder="Your password"
+              required
+            />
+          </div>
+          <div className="login-form-actions">
+            <button type="submit" className="btn btn-primary login-button">
+              Login
+            </button>
+            <button type="button" onClick={onClose} className="btn btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 // Custom Modal Component
 const Modal = ({ message, onClose }) => {
@@ -169,8 +272,8 @@ const Modal = ({ message, onClose }) => {
 };
 
 // TripList Component
-function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { // Accept isGlobalAdmin
-  const { db, userId, showCustomModal } = useContext(FirebaseContext);
+function TripList({ appId, setCurrentPage, setSelectedTrip }) {
+  const { db, userId, showCustomModal, isTripCaptain } = useContext(FirebaseContext);
   const [trips, setTrips] = useState([]);
   const [newTripName, setNewTripName] = useState('');
   const [newTripDesc, setNewTripDesc] = useState('');
@@ -204,7 +307,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
       showCustomModal("Database or User ID not available.");
       return;
     }
-    if (!isGlobalAdmin) { // Only allow creation if isGlobalAdmin is true
+    if (!isTripCaptain) {
       showCustomModal("You do not have permission to create trips.");
       return;
     }
@@ -237,7 +340,6 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
     <div className="trip-list-container">
       <h2 className="trip-list-title">Your Trips</h2>
 
-      {/* This section is now always rendered for all users */}
       <div className="create-trip-section card">
         <h3 className="create-trip-heading">
           <PlusCircle className="icon" size={24} /> Create a New Trip
@@ -253,7 +355,7 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               className="input-field"
               placeholder="e.g., CHlo bhai trip PE"
               required
-              disabled={!isGlobalAdmin} // Disable input for non-admins
+              disabled={!isTripCaptain}
             />
           </div>
           <div className="form-group">
@@ -265,12 +367,12 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
               rows="3"
               className="input-field"
               placeholder="e.g.,KOndli , MAyur Vihar phase 3 , kHoda"
-              disabled={!isGlobalAdmin} // Disable textarea for non-admins
+              disabled={!isTripCaptain}
             ></textarea>
           </div>
           <button
             type="submit"
-            disabled={isAddingTrip || !isGlobalAdmin} // Disable button for non-admins
+            disabled={isAddingTrip || !isTripCaptain}
             className="btn btn-primary trip-form-button"
           >
             {isAddingTrip ? 'Creating...' : (
@@ -283,18 +385,17 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
       </div>
 
       {trips.length === 0 ? (
-        <p className="no-trips-message">No trips found. {isGlobalAdmin ? 'Create one to get started!' : 'Contact the trip captain to create a trip.'}</p>
+        <p className="no-trips-message">No trips found. {isTripCaptain ? 'Create one to get started!' : 'Contact the trip captain to create a trip.'}</p>
       ) : (
         <ul className="trip-list-grid">
-          {trips.map((trip, index) => ( // Added index for serial number
+          {trips.map((trip, index) => (
             <li
               key={trip.id}
               onClick={() => handleSelectTrip(trip)}
               className="trip-card"
             >
-              <h4 className="trip-card-name">{index + 1}. {trip.name}</h4> {/* Display serial number */}
+              <h4 className="trip-card-name">{index + 1}. {trip.name}</h4>
               <p className="trip-card-description">{trip.description || 'No description provided.'}</p>
-              {/* Display trip owner */}
               <p className="trip-card-owner">
                 Created by: ALAN BIJU
               </p>
@@ -309,23 +410,18 @@ function TripList({ appId, setCurrentPage, setSelectedTrip, isGlobalAdmin }) { /
 // TripDetail Component
 function TripDetail({ appId, trip, setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('summary');
-  const { db, userId, showCustomModal } = useContext(FirebaseContext);
+  const { db, userId, showCustomModal, isTripCaptain } = useContext(FirebaseContext);
   const [members, setMembers] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
 
-  // Determine if the current user is the captain for this session
-  // If the URL path starts with /alan, user is considered captain for UI purposes.
-  // Otherwise, user is captain only if their userId matches the trip's ownerId.
-  const isCaptain = window.location.pathname.startsWith('/kuttubiju') || (userId && trip.ownerId === userId);
+  // Determine if the current user is the captain
+  const isCaptain = isTripCaptain || (userId && trip.ownerId === userId);
 
   useEffect(() => {
     if (!db || !trip?.id) return;
 
-    // Removed the redirection logic: All users can now view all tabs
-
-    // Listen for members
     const unsubscribeMembers = onSnapshot(
       collection(db, `artifacts/${appId}/public/data/trips/${trip.id}/members`),
       (snapshot) => {
@@ -337,7 +433,6 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       }
     );
 
-    // Listen for incomes
     const unsubscribeIncomes = onSnapshot(
       collection(db, `artifacts/${appId}/public/data/trips/${trip.id}/incomes`),
       (snapshot) => {
@@ -349,7 +444,6 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       }
     );
 
-    // Listen for expenses
     const unsubscribeExpenses = onSnapshot(
       collection(db, `artifacts/${appId}/public/data/trips/${trip.id}/expenses`),
       (snapshot) => {
@@ -359,9 +453,8 @@ function TripDetail({ appId, trip, setCurrentPage }) {
         console.error("Error fetching expenses:", error);
         showCustomModal(`Failed to load expenses: ${error.message}`);
       }
-      );
+    );
 
-    // Listen for settlements (new)
     const unsubscribeSettlements = onSnapshot(
       collection(db, `artifacts/${appId}/public/data/trips/${trip.id}/settlements`),
       (snapshot) => {
@@ -373,14 +466,13 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       }
     );
 
-
     return () => {
       unsubscribeMembers();
       unsubscribeIncomes();
       unsubscribeExpenses();
-      unsubscribeSettlements(); // Cleanup settlement listener
+      unsubscribeSettlements();
     };
-  }, [db, trip.id, appId, isCaptain, showCustomModal]); // Removed activeTab from dependencies
+  }, [db, trip.id, appId, isCaptain, showCustomModal]);
 
   return (
     <div>
@@ -395,7 +487,6 @@ function TripDetail({ appId, trip, setCurrentPage }) {
       </div>
       <p className="trip-detail-description">{trip.description || 'No description for this trip.'}</p>
 
-      {/* Tabs - now always visible */}
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'summary' ? 'active' : ''}`}
@@ -423,7 +514,6 @@ function TripDetail({ appId, trip, setCurrentPage }) {
         </button>
       </div>
 
-      {/* Tab Content - now always rendered based on activeTab */}
       <div className="tab-content">
         {activeTab === 'summary' && (
           <SummaryAndStatements
@@ -466,13 +556,13 @@ function MemberManagement({ appId, tripId, members, isCaptain }) {
       showCustomModal("Database not available.");
       return;
     }
-    if (!isCaptain) { // Added explicit check for modification
+    if (!isCaptain) {
       showCustomModal("You do not have permission to add members.");
       return;
     }
     setIsAddingMember(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/members`), { // Corrected: use tripId
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/members`), {
         name: newMemberName.trim(),
         addedAt: serverTimestamp(),
       });
@@ -509,12 +599,12 @@ function MemberManagement({ appId, tripId, members, isCaptain }) {
             className="input-field"
             placeholder="e.g., ALAN BIJU"
             required
-            disabled={!isCaptain} // Disable if not captain
+            disabled={!isCaptain}
           />
         </div>
         <button
           type="submit"
-          disabled={isAddingMember || !isCaptain} // Disable if not captain
+          disabled={isAddingMember || !isCaptain}
           className="btn btn-primary add-member-button"
         >
           {isAddingMember ? 'Adding...' : 'Add Member'}
@@ -574,14 +664,14 @@ function IncomeManagement({ appId, tripId, members, incomes, isCaptain }) {
       showCustomModal("Database not available.");
       return;
     }
-    if (!isCaptain) { // Added explicit check for modification
+    if (!isCaptain) {
       showCustomModal("You do not have permission to add income.");
       return;
     }
 
     setIsAddingIncome(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), { // Corrected: use tripId
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/incomes`), {
         memberId: selectedMemberId,
         amount: incomeAmount,
         description: description.trim(),
@@ -759,7 +849,7 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
   }, [members, includedMemberIds.length]);
 
   const handleToggleInclude = (memberId) => {
-    if (!isCaptain) { // Added explicit check for modification
+    if (!isCaptain) {
       showCustomModal("You do not have permission to modify included members.");
       return;
     }
@@ -785,14 +875,14 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
       showCustomModal("Database not available.");
       return;
     }
-    if (!isCaptain) { // Added explicit check for modification
+    if (!isCaptain) {
       showCustomModal("You do not have permission to add expenses.");
       return;
     }
 
     setIsAddingExpense(true);
     try {
-      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/expenses`), { // Corrected: use tripId
+      await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/expenses`), {
         paidByMemberId: paidByMemberId,
         amount: expenseAmount,
         description: description.trim(),
@@ -920,7 +1010,7 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
                     value={member.id}
                     checked={includedMemberIds.includes(member.id)}
                     onChange={() => handleToggleInclude(member.id)}
-                    disabled={!isCaptain} // Disable checkboxes if not captain
+                    disabled={!isCaptain}
                   />
                   <span>{member.name}</span>
                 </label>
@@ -977,10 +1067,9 @@ function ExpenseManagement({ appId, tripId, members, expenses, isCaptain }) {
 
 // SummaryAndStatements Component
 function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settlements, isCaptain }) {
-  // Memoize getMemberName to ensure its reference is stable across renders
   const getMemberName = useCallback((id) => {
     return members.find(m => m.id === id)?.name || 'Unknown Member';
-  }, [members]); // Depend on members array
+  }, [members]);
 
   const { db, showCustomModal } = useContext(FirebaseContext);
   const [balances, setBalances] = useState([]);
@@ -995,7 +1084,6 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
       return;
     }
 
-    // Combine all transactions for display
     const combinedTransactions = [
       ...incomes.map(item => ({
         ...item,
@@ -1013,12 +1101,11 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
         involvedMembers: item.includedMemberIds,
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
       })),
-      // Add settlements to the combined transactions for display
       ...settlements.map(item => ({
         ...item,
         type: 'settlement',
         description: `Settlement: ${getMemberName(item.fromId)} paid ${getMemberName(item.toId)}`,
-        displayAmount: `-₹${item.amount.toFixed(2)} (Paid)`, // How it affects the 'from' member
+        displayAmount: `-₹${item.amount.toFixed(2)} (Paid)`,
         payerOrReceiverId: item.fromId,
         involvedMembers: [item.fromId, item.toId],
         sortTimestamp: item.createdAt?.toDate().getTime() || new Date(item.date).getTime(),
@@ -1037,7 +1124,6 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
           totalOwedShare: 0,
           netBalance: 0,
           totalContributions: 0,
-          // Initialize for settlement adjustments
           settlementPaid: 0,
           settlementReceived: 0,
         },
@@ -1066,33 +1152,24 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
         });
       });
 
-      // Apply settlements to balances
       settlements.forEach(settlement => {
         const fromId = settlement.fromId;
         const toId = settlement.toId;
         const amount = settlement.amount;
 
         if (memberBalances[fromId]) {
-          memberBalances[fromId].settlementPaid += amount; // Member who owed has paid this much
+          memberBalances[fromId].settlementPaid += amount;
         }
         if (memberBalances[toId]) {
-          memberBalances[toId].settlementReceived += amount; // Member who was owed has received this much
+          memberBalances[toId].settlementReceived += amount;
         }
       });
 
       const calculatedBalances = members.map(member => {
         const balance = memberBalances[member.id];
-        // Total money put into the group pool (initial income + their share of expenses paid)
         balance.totalContributions = balance.totalExplicitIncome + balance.totalPaidExpenses;
-        // The money they should have paid for their share of expenses
-        // Calculate net balance before settlements
         let preSettlementNet = balance.totalContributions - balance.totalOwedShare;
-
-        // Adjust net balance based on direct settlements
-        // If they paid a settlement (settlementPaid), their 'owed' status decreases (net becomes less negative/more positive)
-        // If they received a settlement (settlementReceived), their 'owed to them' status decreases (net becomes less positive/more negative)
         balance.netBalance = preSettlementNet - balance.settlementReceived + balance.settlementPaid;
-
         return balance;
       });
 
@@ -1102,13 +1179,13 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
 
     const calculateSettlementSuggestions = (currentBalances) => {
       let netAmounts = currentBalances.map(member => ({
-        id: members.find(m => m.name === member.name)?.id || member.id, // Ensure ID is present
+        id: members.find(m => m.name === member.name)?.id || member.id,
         name: member.name,
         amount: member.netBalance,
-      })).filter(m => Math.abs(m.amount) > 0.01); // Filter out settled amounts
+      })).filter(m => Math.abs(m.amount) > 0.01);
 
-      let payers = netAmounts.filter(m => m.amount > 0).sort((a, b) => b.amount - a.amount); // Those who are owed
-      let receivers = netAmounts.filter(m => m.amount < 0).sort((a, b) => a.amount - b.amount); // Those who owe
+      let payers = netAmounts.filter(m => m.amount > 0).sort((a, b) => b.amount - a.amount);
+      let receivers = netAmounts.filter(m => m.amount < 0).sort((a, b) => a.amount - b.amount);
 
       const suggestions = [];
 
@@ -1116,8 +1193,8 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
       let j = 0;
 
       while (i < payers.length && j < receivers.length) {
-        let payer = payers[i]; // This is the person who is owed (has positive balance)
-        let receiver = receivers[j]; // This is the person who owes (has negative balance)
+        let payer = payers[i];
+        let receiver = receivers[j];
 
         const amountToSettle = Math.min(payer.amount, Math.abs(receiver.amount));
 
@@ -1129,7 +1206,6 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
           amount: amountToSettle.toFixed(2),
         });
 
-        // Update balances in temp objects
         payer.amount -= amountToSettle;
         receiver.amount += amountToSettle;
 
@@ -1147,11 +1223,10 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
   }, [members, incomes, expenses, settlements, getMemberName]);
 
   const handleMarkSettlementAsPaid = async (fromMemberId, toMemberId, amount, fromMemberName, toMemberName) => {
-    if (!db || !isCaptain) { // Only captain can mark as settled
+    if (!db || !isCaptain) {
       showCustomModal("Only the trip captain can mark settlements as paid.");
       return;
     }
-    // Safety check: Ensure the amount is positive
     const settlementAmount = parseFloat(amount);
     if (isNaN(settlementAmount) || settlementAmount <= 0) {
       showCustomModal("Invalid settlement amount.");
@@ -1159,12 +1234,11 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
     }
 
     try {
-      // Add a new settlement record to represent the direct payment
       await addDoc(collection(db, `artifacts/${appId}/public/data/trips/${tripId}/settlements`), {
-        fromId: fromMemberId, // The person who owes and paid
-        toId: toMemberId,     // The person who was owed and received
+        fromId: fromMemberId,
+        toId: toMemberId,
         amount: settlementAmount,
-        date: new Date().toISOString().split('T')[0], // Current date
+        date: new Date().toISOString().split('T')[0],
         createdAt: serverTimestamp(),
         description: `Settlement from ${fromMemberName} to ${toMemberName}`,
       });
@@ -1217,11 +1291,11 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                           ? getMemberName(transaction.payerOrReceiverId)
                           : transaction.type === 'expense'
                             ? `${getMemberName(transaction.payerOrReceiverId)} paid for ${transaction.involvedMembers.map(getMemberName).join(', ')}`
-                            : `${getMemberName(transaction.fromId)} pays ${getMemberName(transaction.toId)}` // For settlements
+                            : `${getMemberName(transaction.fromId)} pays ${getMemberName(transaction.toId)}`
                         }
                       </td>
                       <td className={transaction.type === 'income' ? 'balance-positive' : 'balance-negative'}>
-                        {transaction.type === 'settlement' ? `-₹${transaction.amount}` : transaction.displayAmount} {/* Display actual amount for settlements */}
+                        {transaction.type === 'settlement' ? `-₹${transaction.amount}` : transaction.displayAmount}
                       </td>
                       <td>{transaction.paymentMethod || 'N/A'}</td>
                       <td>{new Date(transaction.date).toLocaleDateString()}</td>
@@ -1272,7 +1346,7 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                     <th>Owes</th>
                     <th>Pays</th>
                     <th>Amount</th>
-                    {isCaptain && <th>Action</th>}
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1282,23 +1356,21 @@ function SummaryAndStatements({ appId, tripId, members, incomes, expenses, settl
                       <td>{sug.from}</td>
                       <td>{sug.to}</td>
                       <td className="balance-negative">₹{sug.amount}</td>
-                      {isCaptain && (
-                        <td>
-                          <button
-                            onClick={() => handleMarkSettlementAsPaid(
-                              sug.fromId,
-                              sug.toId,
-                              parseFloat(sug.amount),
-                              sug.from,
-                              sug.to
-                            )}
-                            className="btn btn-success btn-small"
-                            disabled={!isCaptain}
-                          >
-                            Mark as Settled
-                          </button>
-                        </td>
-                      )}
+                      <td>
+                        <button
+                          onClick={() => handleMarkSettlementAsPaid(
+                            sug.fromId,
+                            sug.toId,
+                            parseFloat(sug.amount),
+                            sug.from,
+                            sug.to
+                          )}
+                          className="btn btn-success btn-small"
+                          disabled={!isCaptain}
+                        >
+                          Mark as Settled
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
